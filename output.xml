@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.0.1 (Python 3.13.8 on win32)" generated="2025-10-22T16:13:45.616944" rpa="false" schemaversion="5">
+<suite id="s1" name="Tests" source="c:\robot-tests\tests">
+<kw name="New Browser" owner="Browser" type="SETUP">
+<msg time="2025-10-22T16:13:45.740896" level="INFO">{"browser": "chromium", "headless": true, "chromiumSandbox": false, "devtools": false, "handleSIGHUP": true, "handleSIGINT": true, "handleSIGTERM": true, "slowMo": 0.0, "timeout": 30000.0, "tracesDir": "C:\\robot-tests\\browser\\traces\\temp\\26bc4931-d18b-4874-ac3d-c52ba0749dc4"}</msg>
+<msg time="2025-10-22T16:13:45.761050" level="INFO">Starting Browser process C:\robot-tests\.venv\Lib\site-packages\Browser\wrapper\index.js using at 127.0.0.1:57553</msg>
+<msg time="2025-10-22T16:13:46.689602" level="INFO">Successfully created browser with options: {"browser":"chromium","headless":true,"chromiumSandbox":false,"devtools":false,"handleSIGHUP":true,"handleSIGINT":true,"handleSIGTERM":true,"slowMo":0,"timeout":30000,"tracesDir":"C:\\robot-tests\\browser\\traces\\temp\\26bc4931-d18b-4874-ac3d-c52ba0749dc4"}</msg>
+<arg>${BROWSER}</arg>
+<arg>headless=${HEADLESS}</arg>
+<tag>BrowserControl</tag>
+<tag>Setter</tag>
+<doc>Create a new playwright Browser with specified options.</doc>
+<status status="PASS" start="2025-10-22T16:13:45.739845" elapsed="0.950311"/>
+</kw>
+<suite id="s1-s1" name="Ui" source="c:\robot-tests\tests\ui">
+<suite id="s1-s1-s1" name="Login" source="c:\robot-tests\tests\ui\login.robot">
+<test id="s1-s1-s1-t1" name="Login error shows toast (ui)" line="14">
+<kw name="Run Keywords" owner="BuiltIn" type="SETUP">
+<kw name="New Context" owner="Browser">
+<msg time="2025-10-22T16:13:46.716727" level="INFO">{
+  "acceptDownloads": true,
+  "bypassCSP": false,
+  "forcedColors": "none",
+  "ignoreHTTPSErrors": false,
+  "javaScriptEnabled": true,
+  "offline": false,
+  "reducedMotion": "no-preference",
+  "serviceWorkers": "allow",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  }
+}</msg>
+<msg time="2025-10-22T16:13:46.729196" level="INFO">Successfully created context. </msg>
+<msg time="2025-10-22T16:13:46.729474" level="INFO">{'acceptDownloads': True, 'bypassCSP': False, 'forcedColors': 'none', 'ignoreHTTPSErrors': False, 'javaScriptEnabled': True, 'offline': False, 'reducedMotion': 'no-preference', 'serviceWorkers': 'allow', 'viewport': {'width': 1280, 'height': 800}}</msg>
+<arg>viewport={"width":1280, "height":800}</arg>
+<tag>BrowserControl</tag>
+<tag>Setter</tag>
+<doc>Create a new BrowserContext with specified options.</doc>
+<status status="PASS" start="2025-10-22T16:13:46.715209" elapsed="0.014404"/>
+</kw>
+<kw name="New Page" owner="Browser">
+<msg time="2025-10-22T16:13:46.781561" level="INFO">Successfully initialized new page object and opened url: about:blank</msg>
+<arg>about:blank</arg>
+<tag>BrowserControl</tag>
+<tag>Setter</tag>
+<doc>Open a new Page.</doc>
+<status status="PASS" start="2025-10-22T16:13:46.729878" elapsed="0.051957"/>
+</kw>
+<arg>New Context</arg>
+<arg>viewport={"width":1280, "height":800}</arg>
+<arg>AND</arg>
+<arg>New Page</arg>
+<arg>about:blank</arg>
+<doc>Executes all the given keywords in a sequence.</doc>
+<status status="PASS" start="2025-10-22T16:13:46.714678" elapsed="0.067281"/>
+</kw>
+<kw name="Open Login Page" owner="Auth">
+<kw name="Go To" owner="Browser">
+<msg time="2025-10-22T16:13:47.115318" level="INFO">Successfully opened URL https://www.saucedemo.com</msg>
+<arg>${LOGIN_URL}</arg>
+<tag>BrowserControl</tag>
+<tag>Setter</tag>
+<doc>Navigates to the given ``url``.</doc>
+<status status="PASS" start="2025-10-22T16:13:46.783141" elapsed="0.332906"/>
+</kw>
+<kw name="Wait For Elements State" owner="Browser">
+<msg time="2025-10-22T16:13:47.140289" level="INFO">Waited for Element with selector id=user-name at state visible</msg>
+<arg>${USER_FIELD}</arg>
+<arg>visible</arg>
+<arg>timeout=${WAIT}</arg>
+<tag>PageContent</tag>
+<tag>Wait</tag>
+<doc>Waits for the element found by ``selector`` to satisfy state option.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.116282" elapsed="0.024279"/>
+</kw>
+<status status="PASS" start="2025-10-22T16:13:46.782659" elapsed="0.358038"/>
+</kw>
+<kw name="Fill Credentials" owner="Auth">
+<kw name="Clear Text" owner="Browser">
+<arg>${USER_FIELD}</arg>
+<tag>PageContent</tag>
+<tag>Setter</tag>
+<doc>Clears the text field found by ``selector``.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.141664" elapsed="0.014508"/>
+</kw>
+<kw name="Fill Text" owner="Browser">
+<msg time="2025-10-22T16:13:47.157688" level="INFO">Fills the text 'standard_user' in the given field.</msg>
+<arg>${USER_FIELD}</arg>
+<arg>${username}</arg>
+<tag>PageContent</tag>
+<tag>Setter</tag>
+<doc>Clears and fills the given ``txt`` into the text field found by ``selector``.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.156523" elapsed="0.021873"/>
+</kw>
+<kw name="Clear Text" owner="Browser">
+<arg>${PASS_FIELD}</arg>
+<tag>PageContent</tag>
+<tag>Setter</tag>
+<doc>Clears the text field found by ``selector``.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.178981" elapsed="0.014323"/>
+</kw>
+<kw name="Fill Text" owner="Browser">
+<msg time="2025-10-22T16:13:47.194256" level="INFO">Fills the text 'wrong' in the given field.</msg>
+<arg>${PASS_FIELD}</arg>
+<arg>${password}</arg>
+<tag>PageContent</tag>
+<tag>Setter</tag>
+<doc>Clears and fills the given ``txt`` into the text field found by ``selector``.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.193587" elapsed="0.009582"/>
+</kw>
+<arg>${VALID_USER}</arg>
+<arg>wrong</arg>
+<status status="PASS" start="2025-10-22T16:13:47.141163" elapsed="0.062205"/>
+</kw>
+<kw name="Click" owner="Browser">
+<msg time="2025-10-22T16:13:47.204507" level="INFO">Clicks the element 'id=login-button'.</msg>
+<arg>${SUBMIT_BTN}</arg>
+<tag>PageContent</tag>
+<tag>Setter</tag>
+<doc>Simulates mouse click on the element found by ``selector``.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.203897" elapsed="0.056169"/>
+</kw>
+<kw name="Wait For Elements State" owner="Browser">
+<msg time="2025-10-22T16:13:47.268484" level="INFO">Waited for Element with selector [data-test="error"] at state visible</msg>
+<arg>${TOAST_ERROR}</arg>
+<arg>visible</arg>
+<arg>timeout=${WAIT}</arg>
+<tag>PageContent</tag>
+<tag>Wait</tag>
+<doc>Waits for the element found by ``selector`` to satisfy state option.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.260630" elapsed="0.008111"/>
+</kw>
+<status status="PASS" start="2025-10-22T16:13:46.711466" elapsed="0.557696"/>
+</test>
+<status status="PASS" start="2025-10-22T16:13:46.693002" elapsed="0.601570"/>
+</suite>
+<status status="PASS" start="2025-10-22T16:13:46.690476" elapsed="0.606809"/>
+</suite>
+<kw name="Close Browser" owner="Browser" type="TEARDOWN">
+<msg time="2025-10-22T16:13:47.339235" level="INFO">Closed browser</msg>
+<tag>BrowserControl</tag>
+<tag>Setter</tag>
+<doc>Closes the current browser.</doc>
+<status status="PASS" start="2025-10-22T16:13:47.298163" elapsed="0.041337"/>
+</kw>
+<status status="PASS" start="2025-10-22T16:13:45.620943" elapsed="1.718657"/>
+</suite>
+<statistics>
+<total>
+<stat pass="1" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="1" fail="0" skip="0" id="s1" name="Tests">Tests</stat>
+<stat pass="1" fail="0" skip="0" id="s1-s1" name="Ui">Tests.Ui</stat>
+<stat pass="1" fail="0" skip="0" id="s1-s1-s1" name="Login">Tests.Ui.Login</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

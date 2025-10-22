@@ -1,0 +1,12 @@
+robotframework-browser ="==19.7.2"
+
+Version: 1.105.0 (user setup)
+Commit: 03c265b1adee71ac88f833e065f7bb956b60550a
+Date: 2025-10-08T14:09:35.891Z
+Electron: 37.6.0
+ElectronBuildId: 12502201
+Chromium: 138.0.7204.251
+Node.js: 22.19.0
+V8: 13.8.258.32-electron.0
+OS: Windows_NT x64 10.0.22631
+

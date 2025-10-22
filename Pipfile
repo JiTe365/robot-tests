@@ -1,0 +1,15 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[requires]
+python_version = "3.13"
+
+[packages]
+robotframework = "==7.0.1"
+robotframework-browser = "==19.7.2"
+robotframework-pabot = ">=4.0,<5.0"
+robotframework-requests = ">=0.9,<1.0"
+
+[dev-packages]

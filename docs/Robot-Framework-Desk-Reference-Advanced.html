@@ -1,0 +1,63 @@
+<!DOCTYPE html><html><head>
+<meta charset="utf-8"><title>Robot Framework — Desk Reference (Advanced)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true, securityLevel:"loose"});</script>
+<style>body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:24px;line-height:1.5}pre{background:#f6f8fa;padding:12px;border-radius:8px}</style>
+</head><body>
+<h1>Robot Framework — Desk Reference (Advanced, Complete)</h1>
+<p>This HTML mirrors the repo and includes Mermaid diagrams.</p>
+<h2>Reference Flow</h2>
+<div class="mermaid">
+flowchart LR
+    A["Suite (.robot)"]
+    ST["*** Settings ***"]
+    SV["*** Variables ***"]
+    SK["*** Keywords ***"]
+    SC["*** Test Cases ***"]
+
+    L["Libraries (Browser, Python)"]
+    R["Resource files (.robot/.resource)"]
+    VF["Variable files (.py/.yaml)"]
+
+    A-->ST & SV & SK & SC
+    ST-->L & R & VF
+    SC-->SK & L
+    SK-->L & R
+</div>
+<h2>Repo Architecture</h2>
+<div class="mermaid">
+flowchart TB
+  subgraph RT["Repo Root"]
+    PF["Pipfile"]
+    LSN["listeners/auto_artifacts.py"]
+    LIBS["libs/*.py"]
+    RSC["resources/**"]
+    TS["tests/**"]
+    RES["results/"]
+  end
+  subgraph ENV["Pipenv venv (.venv)"]
+    PKG["robotframework, browser, requests"]
+    PW["Browser.entry init (Playwright)"]
+  end
+  PF-->PKG-->PW
+  TS-->RSC
+  TS-->LIBS
+  TS-->LSN
+</div>
+<h2>Runtime (My First Test)</h2>
+<div class="mermaid">
+sequenceDiagram
+  participant ROB as Robot Runner
+  participant LIB as Browser lib
+  participant PW as Playwright
+  participant BR as Real Browser
+  ROB->>LIB: New Browser / New Context / New Page
+  LIB->>PW: launch/context/page
+  PW->>BR: start process/tab
+  ROB->>LIB: Go To + Get Title
+</div>
+<h2>Usage</h2>
+<pre>.	estrunner.bat</pre>
+<pre>py -m pipenv run python -m Browser.entry init
+py -m pipenv run robot -P "%CD%" -d results --listener listeners.auto_artifacts.AutoArtifacts:results/failures tests</pre>
+</body></html>
