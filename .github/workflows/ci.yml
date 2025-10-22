@@ -50,8 +50,8 @@ jobs:
           pipenv run python -m Browser.entry init
       - name: Run UI tests (headed via Xvfb) with listener
         run: |
-          xvfb-run -a pipenv run robot             --listener listeners/auto_artifacts.py:AutoArtifacts:results/failures             -d results/ui-main tests/ui
-          xvfb-run -a pipenv run robot             --listener listeners/auto_artifacts.py:AutoArtifacts:results/failures             -d results/ui-trace tests/trace
+          xvfb-run -a pipenv run robot             --listener listeners.auto_artifacts.AutoArtifacts:results/failures             -d results/ui-main tests/ui
+          xvfb-run -a pipenv run robot             --listener listeners.auto_artifacts.AutoArtifacts:results/failures             -d results/ui-trace tests/trace
       - name: Upload UI results (main)
         uses: actions/upload-artifact@v4
         with:
