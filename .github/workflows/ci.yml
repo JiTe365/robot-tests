@@ -68,12 +68,9 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          xvfb-run -a pipenv run robot \
-            -P "$GITHUB_WORKSPACE" \
-            --listener listeners.auto_artifacts.AutoArtifacts:results/ui_failures \
-            -d results/ui tests/ui
-
-      - name: Upload UI results
+          xvfb-run -a pipenv run robot             --listener listeners/auto_artifacts.py:AutoArtifacts:results/failures             -d results/ui-main tests/ui
+          xvfb-run -a pipenv run robot             --listener listeners/auto_artifacts.py:AutoArtifacts:results/failures             -d results/ui-trace tests/trace
+      - name: Upload UI results (main)
         uses: actions/upload-artifact@v4
         with:
           name: robot-ui-results
