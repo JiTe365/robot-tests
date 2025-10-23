@@ -65,24 +65,38 @@ flowchart LR
   </div>
 </div>
 
+
 <div class="box">
-  <h2>2) Architecture / dependencies (repo & tools)</h2>
+  <h2>2) Architecture / dependencies (repo &amp; tools)</h2>
   <div class="mermaid">
 flowchart TB
-  WS["WS: Windows Shell\n— runs testrunner.bat"]
-  BAT["BAT: testrunner.bat\n— orchestrates pipenv + robot"]
+  WS["WS: Windows/Linux Shell
+— runs testrunner or CI"]
+  BAT["BAT: testrunner.bat (local) / CI step
+— orchestrates Pipenv"]
   
-  subgraph RT["RT: Project Root (C:\\robot-tests)"]
-    PF["PF: Pipfile\n— dependency spec"]
-    SUITE["SUITE: tests\\*.robot\n— your test suites"]
-    INIT["INIT: tests\\__init__.robot\n— shared setup/teardown"]
-    RES["RES: results\\\n— log.html, report.html"]
+  subgraph RT["RT: Project Root (C:/robot-tests)"]
+    PF["PF: Pipfile
+— dependency spec"]
+    SUITE["SUITE: tests/*.robot
+— your test suites"]
+    INIT["INIT: tests/__init__.robot
+— shared setup/teardown"]
+    RES["RES: results/
+— log.html, report.html"]
   end
 
-  subgraph PE["PE: Pipenv Virtualenv"]
-    PIPENV["PIPENV: pipenv\n— resolves & installs"]
-    PKG["PKG: Packages\n— robotframework, robotframework-browser, pabot"]
-    DL["DL: Browser.entry init\n— downloads Playwright browsers"]
+  subgraph PE["PE: Pipenv Virtualenv (.venv)"]
+    PIPENV["PIPENV: pipenv
+— resolves & installs"]
+    PKG["PKG: Packages
+— robotframework, robotframework-browser, requests"]
+    CMD_INIT["CMD1: pipenv run python -m Browser.entry init
+— runs inside the venv"]
+    CMD_ROBOT["CMD2: pipenv run robot -d results tests
+— runs inside the venv"]
+    DL["DL: Browser.entry init
+— downloads Playwright browsers"]
   end
 
   subgraph PW["PW: Playwright Runtime"]
@@ -96,10 +110,14 @@ flowchart TB
   BAT -->|sync/install| PIPENV
   PIPENV -->|reads| PF
   PIPENV -->|installs| PKG
-  BAT -->|pipenv run python -m Browser.entry init| DL
+
+  BAT --> CMD_INIT
+  CMD_INIT --> DL
   DL --> DRV
 
-  BAT -->|pipenv run robot -d results tests| SUITE
+  BAT --> CMD_ROBOT
+  CMD_ROBOT --> SUITE
+
   INIT --> SUITE
   SUITE -->|imports| PKG
   SUITE -->|calls keywords| DRV
@@ -107,63 +125,25 @@ flowchart TB
   BROW -->|navigate| WEB
   SUITE --> RES
   </div>
+  <p class="note"><b>Note:</b> Both <code>pipenv run python -m Browser.entry init</code> and <code>pipenv run robot -d results tests</code> execute <em>inside</em> the Pipenv virtualenv (PE). That keeps imports consistent.</p>
 </div>
 
-<div class="box">
-  <h2>3) Runtime communication (“My First Test”)</h2>
-  <div class="mermaid">
-sequenceDiagram
-  participant WS as WS: Windows Shell
-  participant BAT as BAT: testrunner.bat
-  participant PIP as PIP: pipenv (venv)
-  participant ROB as ROB: robot (runner)
-  participant ST as ST: testsuite.robot
-  participant LIB as LIB: Browser (Robot lib)
-  participant PW as PW: Playwright driver
-  participant BR as BR: Browser (Chromium)
-  participant SUT as SUT: Site (playwright.dev)
-
-  WS->>BAT: Start
-  BAT->>PIP: sync/install from Pipfile
-  BAT->>PIP: run python -m Browser.entry init
-  PIP->>PW: ensure drivers/browsers
-
-  BAT->>ROB: run robot -d results tests
-  ROB->>ST: parse & load suite
-  ST->>LIB: import Browser
-
-  Note over ST: New Browser chromium headless=False<br/>New Context<br/>New Page https://playwright.dev/<br/>Get Title → Should Contain "Playwright"
-  ST->>LIB: New Browser
-  LIB->>PW: launch chromium
-  PW->>BR: start process
-
-  ST->>LIB: New Page https://playwright.dev/
-  LIB->>PW: context.new_page + page.goto(url)
-  PW->>BR: open tab & navigate
-  BR->>SUT: GET /
-  SUT-->>BR: HTML/CSS/JS
-
-  ST->>LIB: Get Title
-  LIB->>PW: page.title()
-  PW-->>LIB: "Playwright"
-  ST->>ROB: assertion passes
-  ROB-->>BAT: write results/log.html & report.html
-  </div>
-</div>
 
 <h2>Legends (abbreviations)</h2>
 <ul>
-  <li><b>WS</b> — Windows Shell (PowerShell/CMD)</li>
-  <li><b>BAT</b> — <code>testrunner.bat</code> (your batch runner)</li>
-  <li><b>PIP / PIPENV</b> — pipenv virtual environment/command</li>
+  <li><b>WS</b> — Shell (PowerShell/CMD/Bash)</li>
+  <li><b>BAT</b> — local batch script or CI step that invokes pipenv</li>
+  <li><b>PIP / PIPENV / PE</b> — pipenv virtual environment/command</li>
   <li><b>PF</b> — Pipfile (dependency spec)</li>
   <li><b>PKG</b> — installed packages (e.g., <code>robotframework</code>, <code>robotframework-browser</code>)</li>
+  <li><b>CMD1</b> — <code>pipenv run python -m Browser.entry init</code> (runs inside the venv)</li>
+  <li><b>CMD2</b> — <code>pipenv run robot -d results tests</code> (runs inside the venv)</li>
   <li><b>DL</b> — <code>Browser.entry init</code> step (downloads Playwright browsers)</li>
   <li><b>PW</b> — Playwright driver (used by Browser library)</li>
   <li><b>BR / BROW</b> — actual browser process (Chromium/Firefox/WebKit)</li>
   <li><b>WEB / SUT</b> — System Under Test (your app/site)</li>
   <li><b>RES</b> — results directory (<code>log.html</code>, <code>report.html</code>)</li>
-  <li><b>ST</b> — <code>*** Settings ***</code> section <em>or</em> <code>testsuite.robot</code> in sequence diagram labels</li>
+  <li><b>ST</b> — <code>*** Settings ***</code> section or <code>testsuite.robot</code> in sequence diag</li>
   <li><b>SV</b> — <code>*** Variables ***</code> section</li>
   <li><b>SK</b> — <code>*** Keywords ***</code> section (custom keywords)</li>
   <li><b>SC</b> — <code>*** Test Cases ***</code> section</li>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot Framework — Desk Reference (Advanced)</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:32px;line-height:1.45}
+h1,h2{margin-top:1.2em} code{background:#f5f5f5;padding:2px 4px;border-radius:4px}
+.box{border:1px solid #e2e2e2;padding:16px;border-radius:8px;background:#fafafa;margin:16px 0}
+.note{font-size:.95em;color:#444}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre{overflow:auto;background:#f7f7f7;padding:12px;border-radius:8px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, securityLevel: "loose" });</script>
+</head><body>
+<h1>Robot Framework — Desk Reference (Advanced)</h1>
+<p class="note">Visuals + robust examples (resources, Python library, listener).</p>
+
+<div class="box">
+  <h2>1) Flow of references</h2>
+  <div class="mermaid">
+
+flowchart LR
+    A["A: Test Suite file (.robot)\n— contains Settings, Variables, Keywords, Test Cases"]
+    ST["ST: *** Settings ***\n— imports & config"]
+    SV["SV: *** Variables ***\n— shared values"]
+    SK["SK: *** Keywords ***\n— custom reusable steps"]
+    SC["SC: *** Test Cases ***\n— executable scenarios"]
+
+    L["L: Libraries (e.g., Browser, custom Python)"]
+    R["R: Resource files (.robot/.resource)"]
+    VF["VF: Variable files (.py/.yaml/.robot)"]
+    RK["RK: Keywords from resource files"]
+    RV["RV: Variables from resource files"]
+    LK["LK: Keywords provided by libraries"]
+
+    A --> ST
+    A --> SV
+    A --> SK
+    A --> SC
+
+    ST -->|import| L
+    ST -->|import| R
+    ST -->|import| VF
+
+    R --> RK
+    R --> RV
+    L --> LK
+
+    SC -->|calls| SK
+    SC -->|calls| RK
+    SC -->|calls| LK
+    SC -->|uses| SV
+    SC -->|uses| RV
+
+    SK -->|calls| LK
+    SK -->|calls| RK
+    SK -->|uses| SV
+    SK -->|uses| RV
+
+    VF -->|provides| SV
+
+  </div>
+</div>
+
+<div class="box">
+  <h2>2) Architecture / dependencies</h2>
+  <div class="mermaid">
+
+flowchart TB
+  WS["WS: Windows Shell / CI"]
+  BAT["BAT: testrunner.bat"]
+
+  subgraph RT["RT: Repo Root"]
+    PF["PF: Pipfile"]
+    INIT["INIT: tests/__init__.robot"]
+    SUITES["SUITES: tests/*"]
+    RSC["RSC: resources/**/*.robot"]
+    LIBS["LIBS: libs/*.py"]
+    LSN["LSN: listeners/*.py"]
+    RES["RES: results/"]
+  end
+
+  subgraph PE["PE: Pipenv (venv)"]
+    PIPENV["PIPENV: resolver"]
+    PKG["PKG: robotframework, robotframework-browser, requests"]
+    DL["DL: Browser.entry init"]
+  end
+
+  subgraph PW["PW: Playwright Runtime"]
+    DRV["DRV: Playwright driver"]
+    BROW["BROW: Chromium/Firefox/WebKit"]
+  end
+
+  WS --> BAT
+  BAT --> PIPENV --> PF
+  PIPENV --> PKG
+  BAT --> DL --> DRV
+
+  SUITES --> RSC
+  SUITES --> LIBS
+  SUITES --> LSN
+  SUITES --> PKG
+  DRV --> BROW
+
+  </div>
+</div>
+
+<div class="box">
+  <h2>3) Runtime communication</h2>
+  <div class="mermaid">
+
+sequenceDiagram
+  participant ROB as ROB: robot runner
+  participant ST as ST: testsuite.robot
+  participant LIB as LIB: Browser (Robot lib)
+  participant PW as PW: Playwright driver
+  participant BR as BR: Browser (Chromium)
+  participant LSN as LSN: Listener (AutoArtifacts)
+  participant SUT as SUT: Site/App
+
+  ROB->>ST: parse & load suite
+  ST->>LIB: import Browser
+  ST->>LIB: New Browser / New Context / New Page
+  LIB->>PW: launch / create context / goto(url)
+  PW->>BR: start process / open tab
+  BR->>SUT: navigate & exchange content
+  ST->>LIB: Get Title → assertion
+  Note over LSN: On failure → Take Screenshot to results/failures
+
+  </div>
+</div>
+
+<div class="box">
+  <h2>4) Resource & Library layering</h2>
+  <div class="mermaid">
+
+flowchart LR
+  TST["Test Suite\n(tests/ui/login.robot)"]
+  AUTH["Resource: Auth.resource\n(UI keywords & locators)"]
+  REST["Resource: RestClient.robot\n(API helpers)"]
+  PYLIB["Python Lib: libs/datastore.py\n(SUITE-scoped state)"]
+  BROWSER["Library: Browser"]
+  REQ["Library: RequestsLibrary"]
+  LSN["Listener: auto_artifacts.py\n(failure screenshots)"]
+
+  TST --> AUTH --> BROWSER
+  TST --> REST --> REQ
+  TST --> PYLIB
+  TST --> LSN
+
+  </div>
+</div>
+
+<h2>5) Examples</h2>
+<h3>5.1 UI Resource — <code>Auth.resource</code></h3>
+<pre>
+*** Settings ***
+Library    Browser
+Library    Collections
+Library    String
+
+*** Variables ***
+${LOGIN_URL}         ${BASE_URL}/login
+${USER_FIELD}        [data-testid="username"]
+${PASS_FIELD}        [data-testid="password"]
+${SUBMIT_BTN}        [data-testid="login-submit"]
+${TOAST_ERROR}       [role="alert"]
+${PROFILE_MENU}      [data-testid="profile-menu"]
+
+${WAIT}              10s
+${RETRY_TIMEOUT}     25s
+${RETRY_INTERVAL}    500ms
+
+*** Keywords ***
+Open Login Page
+    Go To    ${LOGIN_URL}
+    Wait For Elements State    ${USER_FIELD}    visible    timeout=${WAIT}
+
+Fill Credentials
+    [Arguments]    ${username}    ${password}
+    Clear Text    ${USER_FIELD}
+    Fill Text     ${USER_FIELD}    ${username}
+    Clear Text    ${PASS_FIELD}
+    Fill Text     ${PASS_FIELD}    ${password}
+
+Submit Login
+    Click         ${SUBMIT_BTN}
+    Wait Until Keyword Succeeds    ${RETRY_TIMEOUT}    ${RETRY_INTERVAL}
+    ...    Run Keyword    _Wait For Login Result
+
+_Wait For Login Result
+    ${ok}=    Run Keyword And Return Status
+    ...    Wait For Elements State    ${PROFILE_MENU}    visible    timeout=1s
+    Run Keyword If    ${ok}    Return From Keyword
+    ${has_err}=    Run Keyword And Return Status
+    ...    Wait For Elements State    ${TOAST_ERROR}    visible    timeout=1s
+    Run Keyword If    ${has_err}
+    ...    Fail    Login failed: ${TOAST_ERROR} visible after submit
+    Fail    Not ready
+
+Login As
+    [Arguments]    ${username}    ${password}
+    Open Login Page
+    Fill Credentials    ${username}    ${password}
+    Submit Login
+
+Assert Logged In
+    Wait For Elements State    ${PROFILE_MENU}    visible    timeout=${WAIT}
+
+Logout If Logged In
+    ${logged_in}=    Run Keyword And Return Status
+    ...    Wait For Elements State    ${PROFILE_MENU}    visible    timeout=1s
+    Run Keyword If    ${logged_in}
+    ...    Click    ${PROFILE_MENU}
+    ...    Click    text=Sign out
+    ...    Wait For Elements State    ${USER_FIELD}    visible    timeout=${WAIT}
+</pre>
+
+<h3>5.2 API Resource — <code>RestClient.robot</code></h3>
+<pre>
+*** Settings ***
+Library    RequestsLibrary
+Library    Collections
+Library    JSONLibrary
+
+*** Variables ***
+${DEFAULT_TIMEOUT}         10
+${RETRY_TIMES}             3
+${RETRY_SLEEP}             0.5
+
+*** Keywords ***
+Create API Session
+    [Arguments]    ${alias}    ${base_url}    ${headers}={}
+    Create Session    ${alias}    ${base_url}    headers=${headers}    timeout=${DEFAULT_TIMEOUT}
+
+GET JSON
+    [Arguments]    ${alias}    ${path}    ${expected_status}=200
+    ${resp}=    GET On Session    ${alias}    ${path}
+    Should Be Equal As Integers    ${resp.status_code}    ${expected_status}
+    ${json}=    Evaluate    ${resp}.json()    modules=requests
+    [Return]    ${json}
+
+POST JSON
+    [Arguments]    ${alias}    ${path}    ${payload}    ${expected_status}=200
+    ${resp}=    POST On Session    ${alias}    ${path}    json=${payload}
+    Should Be Equal As Integers    ${resp.status_code}    ${expected_status}
+    ${json}=    Evaluate    ${resp}.json()    modules=requests
+    [Return]    ${json}
+
+GET With Retry
+    [Arguments]    ${alias}    ${path}    ${expected_status}=200
+    :FOR    ${i}    IN RANGE    ${RETRY_TIMES}
+    \    ${ok}    ${json}=    Run Keyword And Ignore Error    GET JSON    ${alias}    ${path}    ${expected_status}
+    \    Run Keyword If    '${ok}'=='PASS'    Return From Keyword    ${json}
+    \    Sleep    ${RETRY_SLEEP}
+    Fail    GET ${path} failed ${RETRY_TIMES} times
+</pre>
+
+<h3>5.3 Python library — <code>libs/datastore.py</code></h3>
+<pre>
+from __future__ import annotations
+from dataclasses import dataclass, field
+from pathlib import Path
+import json, time, uuid
+from robot.api import logger
+
+class DataStoreError(Exception):
+    pass
+
+@dataclass
+class DataStore:
+    root: Path
+    _mem: dict = field(default_factory=dict)
+
+    def put(self, key: str, value) -> None:
+        logger.info(f"[DataStore] put {key}")
+        self._mem[key] = value
+
+    def get(self, key: str, default=None):
+        return self._mem.get(key, default)
+
+    def save_json(self, name: str, data: dict) -> str:
+        self.root.mkdir(parents=True, exist_ok=True)
+        path = self.root / f"{name}.json"
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        logger.info(f"[DataStore] wrote {path}")
+        return str(path)
+
+    def load_json(self, name: str) -> dict:
+        path = self.root / f"{name}.json"
+        if not path.exists():
+            raise DataStoreError(f"{path} not found")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+class TestDataStore:
+    \"\"\"Robot library exposing keywords; suite-scoped shared state.\"\"\"
+    ROBOT_LIBRARY_SCOPE = "SUITE"
+    ROBOT_LIBRARY_VERSION = "1.0"
+
+    def __init__(self, dir: str = "artifacts/data"):
+        self.store = DataStore(root=Path(dir))
+
+    def create_unique_user(self, prefix: str = "user") -> dict:
+        uid = f"{prefix}_{uuid.uuid4().hex[:8]}"
+        user = {"username": uid, "created_at": int(time.time())}
+        self.store.put("last_user", user)
+        self.store.save_json(uid, user)
+        return user
+
+    def get_last_user(self) -> dict | None:
+        return self.store.get("last_user")
+
+    def load_user(self, name: str) -> dict:
+        return self.store.load_json(name)
+</pre>
+
+<h3>5.4 Listener — <code>listeners/auto_artifacts.py</code></h3>
+<pre>
+from pathlib import Path
+from robot.libraries.BuiltIn import BuiltIn
+
+class AutoArtifacts:
+    \"\"\"Listener v3: on failure, capture a Browser screenshot into results/failures/.\"\"\"
+    ROBOT_LISTENER_API_VERSION = 3
+
+    def __init__(self, outdir="results/failures"):
+        self.outdir = Path(outdir)
+        self.outdir.mkdir(parents=True, exist_ok=True)
+
+    def end_test(self, data, result):
+        if result.passed:
+            return
+        test_name = result.name.replace(" ", "_")
+        path = self.outdir / f"{test_name}.png"
+        bi = BuiltIn()
+        bi.run_keyword("Take Screenshot", str(path), "fullPage=True")
+        bi.log_to_console(f"[AutoArtifacts] Screenshot: {path}")
+</pre>
+
+<h2>Legends</h2>
+<p>WS: shell (local/CI) · BAT: testrunner.bat · PF: Pipfile · PIPENV: pipenv · PKG: packages · DL: Browser.entry init · DRV/PW: Playwright driver · BROW: browser process · RSC: resource files · LIBS: Python libs · LSN: listeners · INIT: tests/__init__.robot</p>
+
+</body></html>

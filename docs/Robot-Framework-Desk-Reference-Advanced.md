@@ -10,7 +10,7 @@
 
 ## Key commands (Windows)
 ```
-.	estrunner.bat
+.	testrunner.bat
 ```
 or
 ```
