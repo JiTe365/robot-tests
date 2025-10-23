@@ -1,4 +1,31 @@
 # .github/workflows/robot-ci.yml
+name: Robot CI
+on: [push, pull_request]
+
+jobs:
+  all:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install pipenv
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pipenv==2024.0.1
+
+      - name: Install project deps
+        env:
+          PIPENV_VENV_IN_PROJECT: "1"
+          PIPENV_IGNORE_VIRTUALENVS: "1"
+        run: |
+          pipenv sync || pipenv install
+          pipenv run python -m Browser.entry init
+
       - name: Run all Robot tests
         env:
           PYTHONPATH: ${{ github.workspace }}
@@ -8,3 +35,9 @@
             --listener listeners.auto_artifacts.AutoArtifacts:results/failures \
             -d results \
             tests
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-results
+          path: results
