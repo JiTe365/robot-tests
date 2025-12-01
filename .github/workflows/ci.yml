@@ -1,7 +1,15 @@
 # .github/workflows/robot-ci.yml
 name: Robot CI
-on: [push, pull_request]
 
+on:
+  push:
+  pull_request:
+  workflow_dispatch:   # enables "Run workflow" button in the UI
+    inputs:
+      HEADLESS:
+        description: "Run headed?"
+        required: false
+        default: "false"
 jobs:
   all:
     runs-on: ubuntu-latest
