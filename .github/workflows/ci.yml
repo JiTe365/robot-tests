@@ -10,6 +10,14 @@ on:
         description: "Run headed?"
         required: false
         default: "false"
+
+# on:
+#  push:
+#  pull_request:
+#  workflow_dispatch:   # enables manual "Run workflow"
+#  schedule:
+#    - cron: "0 6 * * *"   # every day at 06:00 UTC
+
 jobs:
   all:
     runs-on: ubuntu-latest
