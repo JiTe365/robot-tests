@@ -11,5 +11,7 @@ robotframework = "==7.0.1"
 robotframework-browser = "==19.7.2"
 robotframework-pabot = ">=4.0,<5.0"
 robotframework-requests = ">=0.9,<1.0"
+grpcio = "*"
+grpcio-tools = "*"
 
 [dev-packages]
