@@ -1,6 +1,22 @@
 # .github/workflows/robot-ci.yml
 name: Robot CI
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:   # enables "Run workflow" button in the UI
+    inputs:
+      HEADLESS:
+        description: "Run headed?"
+        required: false
+        default: "false"
+
+# on:
+#  push:
+#  pull_request:
+#  workflow_dispatch:   # enables manual "Run workflow"
+#  schedule:
+#    - cron: "0 6 * * *"   # every day at 06:00 UTC
 
 jobs:
   all:
