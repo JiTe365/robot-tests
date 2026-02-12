@@ -38,8 +38,10 @@ POST JSON
 
 GET With Retry
     [Arguments]    ${alias}    ${path}    ${expected_status}=200
-    :FOR    ${i}    IN RANGE    ${RETRY_TIMES}
-    \    ${ok}    ${json}=    Run Keyword And Ignore Error    GET JSON    ${alias}    ${path}    ${expected_status}
-    \    Run Keyword If    '${ok}'=='PASS'    Return From Keyword    ${json}
-    \    Sleep    ${RETRY_SLEEP}
+    FOR    ${i}    IN RANGE    ${RETRY_TIMES}
+        ${ok}    ${json}=    Run Keyword And Ignore Error    GET JSON    ${alias}    ${path}    ${expected_status}
+        Run Keyword If    '${ok}'=='PASS'    Return From Keyword    ${json}
+        Sleep    ${RETRY_SLEEP}
     Fail    GET ${path} failed ${RETRY_TIMES} times
+    END
+    
